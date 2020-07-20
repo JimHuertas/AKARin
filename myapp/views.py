@@ -15,7 +15,43 @@ def busqueda(request):
     return render(request, 'myapp/busqueda.html', {"titulo": "Busqueda"})
 
 #View que procesará el pedido de busqueda
-
+def buscar(request):
+    busca = request.GET.get("search")
+    fecha_desde= request.GET.get("fecha_desde")
+    fecha_hasta= request.GET.get("fecha_hasta")
+    date=""
+    if not fecha_hasta:
+        if not fecha_desde:
+            if not busca:
+                return render(request, 'myapp/busqueda.html', {'date' : date})
+            elif busca:
+                date = Documento.objects.filter(
+                    Q(nombre__icontains = busca) |
+                    Q(tipo__icontains = busca) |
+                    Q(tag__icontains = busca)
+                ).distinct()
+                return render(request, 'myapp/busqueda.html', {'date':date})
+            
+        elif fecha_desde:
+            if not busca:
+                date= Documento.objects.filter(loaded__gte=fecha_desde)
+                return render(request, 'myapp/busqueda.html', {'date':date})
+            elif busca:
+                date= Documento.objects.filter( 
+                    Q(nombre__icontains = busca) |
+                    Q(tipo__icontains = busca) |
+                    Q(tag__icontains = busca), loaded__gte=fecha_desde,
+                ).distinct()
+                return render(request, 'myapp/busqueda.html', {'date':date})
+    elif fecha_hasta:
+        if fecha_desde:
+            if busca:
+                date= Documento.objects.filter( Q(nombre__icontains = busca) | Q(tipo__icontains = busca) | Q(tag__icontains = busca),loaded__range=[fecha_desde, fecha_hasta]).distinct()
+                return render(request, 'myapp/busqueda.html', {'date':date})
+            elif not busca:
+                date = Documento.objects.filter(loaded__range=[fecha_desde, fecha_hasta])
+                return render(request, 'myapp/busqueda.html', {'date':date})
+'''
 def buscar(request):
     busca = request.GET.get("search")
     doc = Documento.objects.all()
@@ -27,7 +63,7 @@ def buscar(request):
         ).distinct()
 
         return render(request, 'myapp/busqueda.html', {'documentos':doc})
-
+'''
 
 
 '''
